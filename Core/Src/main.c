@@ -68,6 +68,7 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 const uint8_t RTC_address = 0xD0;
+uint8_t last_second, last_minute, last_hour;
 uint8_t Time_reg[4];
 uint8_t Time_settings[4];
 
@@ -125,7 +126,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxData, 10);
+  HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxData, 1);
 
   HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 
@@ -181,13 +182,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	//Read time
-	Read_RTC(&Time_reg[0], &Time_settings[0]);
-	Read_RTC(&Time_reg[1], &Time_settings[1]);
-	Read_RTC(&Time_reg[2], &Time_settings[2]);
-	Read_RTC(&Time_reg[3], &Time_settings[3]);
-
-	//sprintf(buffer, "Seconds = %x\n",i2cData[1]);
-	//HAL_UART_Transmit(&huart2,(uint8_t*) buffer,strlen(buffer), 10);
+	Display_Time();
 
 	HAL_Delay(30);
 
@@ -197,10 +192,14 @@ int main(void)
 
 	if(b_button_pressed)
 	{
-		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 		HAL_UART_Transmit(&huart2,(uint8_t*) Ask_seconds,strlen(Ask_seconds), 50);
 		HAL_Delay(1000);
 		b_button_pressed = false;
+		while(!b_seconds_entered);
+		HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+		Write_RTC(Time_reg[0], rxData[0]);
+		HAL_Delay(100);
+		b_seconds_entered = false;
 	}
 	else
 	{
@@ -209,11 +208,15 @@ int main(void)
 
 	if(b_seconds_entered)
 	{
+		HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+		Write_RTC(Time_reg[0], rxData[0]);
+		HAL_Delay(100);
 		b_seconds_entered = false;
 	}
 
 	if(b_is_alarm_triggered)
 	{
+		Display_Time();
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 		Clear_Alarm_IT(alarm[0]);
 		HAL_Delay(1000);
@@ -348,7 +351,7 @@ static void MX_USART2_UART_Init(void)
   huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = DMA_CIRCULAR;//UART_PARITY_NONE;
+  huart2.Init.Parity = UART_PARITY_NONE;
   huart2.Init.Mode = UART_MODE_TX_RX;
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
@@ -404,7 +407,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_14, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PC1 */
   GPIO_InitStruct.Pin = GPIO_PIN_1;
@@ -425,8 +428,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD12 PD14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_14;
+  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -501,6 +504,23 @@ void Clear_Alarm_IT(uint8_t alarm)
 	HAL_Delay(500);
 }
 
+void Display_Time(void)
+{
+	Read_RTC(&Time_reg[0], &Time_settings[0]);
+	Read_RTC(&Time_reg[1], &Time_settings[1]);
+	Read_RTC(&Time_reg[2], &Time_settings[2]);
+	Read_RTC(&Time_reg[3], &Time_settings[3]);
+
+	if(last_second != Time_settings[0] || last_minute != Time_settings[1] || last_hour != Time_settings[2])
+	{
+		sprintf(txData, "%x:%x:%x\n",Time_settings[2], Time_settings[1], Time_settings[0]);
+		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 10);
+	}
+	last_second = Time_settings[0];
+	last_minute = Time_settings[1];
+	last_hour	= Time_settings[2];
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* Prevent unused argument(s) compilation warning */
@@ -525,7 +545,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* NOTE: This function should not be modified, when the callback is needed,
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
-  HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 10);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
+
+  HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+
   b_seconds_entered = true;
 }
 /* USER CODE END 4 */
