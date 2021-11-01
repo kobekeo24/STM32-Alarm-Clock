@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <string.h>
+#include "RTC_interface.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,11 +43,10 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
+
 DMA_HandleTypeDef hdma_i2c1_rx;
 
 UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
@@ -67,29 +67,8 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-const uint8_t RTC_address = 0xD0;
-uint8_t last_second, last_minute, last_hour;
-uint8_t Time_reg[4];
-uint8_t Time_settings[4];
-
-/* Uart buffers */
-char Ask_seconds[50] = "Enter seconds: \n";
-char txData[50] = "Hello \n";
-char rxData[50];
-
-uint8_t alarm[2];
-uint8_t alarm_reg[4];
-uint8_t alarm_settings[4];
-uint8_t alarm_int_byte = 0x05;
-
-uint8_t control_reg 	= 0x0E;
-uint8_t control_byte 	= 0x05; //enable alarm 1 (b0000 0101)
-
-uint8_t status_reg		= 0x0F;	//status register
-uint8_t status_byte;
-
-bool b_is_alarm_triggered, b_button_pressed;
-bool b_seconds_entered;
+//alarms
+uint8_t alarm[] = {0x01,0x02};
 /* USER CODE END 0 */
 
 /**
@@ -125,52 +104,25 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  *Ask_seconds = "Enter seconds: \n";
+  *txData = "Hello \n";
 
   HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxData, 1);
 
   HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 
-  //alarms
-  alarm[0] = 0x01;
-  alarm[1] = 0x02;
+
 
   //Time settings
-  Time_reg[0] 			= 0x00;		//RTC register seconds
-  Time_reg[1] 			= 0x01;		//RTC register minutes
-  Time_reg[2] 			= 0x02;		//RTC register hours
-  Time_reg[3] 			= 0x03;		//RTC register days
-
-  Time_settings[0]    	= 0x00;		//seconds
-  Time_settings[1] 		= 0x00;		//minutes
-  Time_settings[2] 		= 0x65;		//hours (5 PM) (b01100101)
-  Time_settings[3] 		= 0x01;		//day (Sunday)
-
-  //Alarm settings
-  alarm_reg[0] 			= 0x07;		//Alarm seconds reg
-  alarm_reg[1] 			= 0x08;		//Alarm minutes reg
-  alarm_reg[2] 			= 0x09;		//Alarm hours reg
-  alarm_reg[3] 			= 0x0A;		//Alarm days reg
-
-  alarm_settings[0]    	= 0x10;		//Alarm seconds
-  alarm_settings[1] 	= 0x00;		//Alarm minutes
-  alarm_settings[2]		= 0x65;		//Alarm hours (5 PM) (b0110 0101)
-  alarm_settings[3]		= 0x41;		//Alarm day set (b0100 0001)
+  RTC_INIT_TIME();
+  RTC_INIT_ALARMS();
 
   //Set time
-  Write_RTC(Time_reg[0], Time_settings[0]);
-  Write_RTC(Time_reg[1], Time_settings[1]);
-  Write_RTC(Time_reg[2], Time_settings[2]);
-  Write_RTC(Time_reg[3], Time_settings[3]);
+  RTC_Set_Time(0x65, 0x00, 0x00);
+  RTC_Day_Date(0x01, 0x20);
 
-  //Set Alarm
-
-  Write_RTC(alarm_reg[0], alarm_settings[0]);
-  Write_RTC(alarm_reg[1], alarm_settings[1]);
-  Write_RTC(alarm_reg[2], alarm_settings[2]);
-  Write_RTC(alarm_reg[3], alarm_settings[3]);
-
-  Clear_Alarm_IT(alarm[0]);
-  Enable_Alarm_IT(alarm[0]);
+  //Alarm settings
+  RTC_Set_Alarm(alarm[0], 0x65, 0x00, 0x10);
 
   /* USER CODE END 2 */
 
@@ -182,13 +134,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	//Read time
-	Display_Time();
+	  RTC_Display_Time();
 
 	HAL_Delay(30);
-
-	Read_RTC(&control_reg, &control_byte);
-
-	Read_RTC(&status_reg, &status_byte);
 
 	if(b_button_pressed)
 	{
@@ -196,8 +144,9 @@ int main(void)
 		HAL_Delay(1000);
 		b_button_pressed = false;
 		while(!b_seconds_entered);
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 		HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
-		Write_RTC(Time_reg[0], rxData[0]);
+		RTC_Set_Seconds(rxData[0]);
 		HAL_Delay(100);
 		b_seconds_entered = false;
 	}
@@ -206,19 +155,12 @@ int main(void)
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);
 	}
 
-	if(b_seconds_entered)
-	{
-		HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
-		Write_RTC(Time_reg[0], rxData[0]);
-		HAL_Delay(100);
-		b_seconds_entered = false;
-	}
 
-	if(b_is_alarm_triggered)
+	if(RTC_Alarm_triggered(alarm[0]))
 	{
-		Display_Time();
+		RTC_Display_Time();
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-		Clear_Alarm_IT(alarm[0]);
+		RTC_Clear_Alarm_IT(alarm[0]);
 		HAL_Delay(1000);
 	}
 
@@ -444,99 +386,7 @@ static void MX_GPIO_Init(void)
 
 }
 
-/* USER CODE BEGIN 4 */
-void Write_RTC(uint8_t reg, uint8_t data)
-{
-	  static uint8_t payload[2];
-	  payload[0] = reg;
-	  payload[1] = data;
-	  HAL_I2C_Master_Transmit(&hi2c1,RTC_address,payload,2,10);
-	  HAL_Delay(30);
-}
 
-void Read_RTC(uint8_t* p_reg, uint8_t *p_data)
-{
-	//Ask slave to read data from register
-	HAL_I2C_Master_Transmit(&hi2c1,RTC_address+1,p_reg,1,10);
-	//Store data
-	HAL_I2C_Master_Receive(&hi2c1,RTC_address,p_data,1,10);
-	HAL_Delay(30);
-}
-
-void Enable_Alarm_IT(uint8_t alarm)
-{
-	Read_RTC(&control_reg, &control_byte);
-	//Enable Alarm 1 interrupt
-	if(alarm == 1)
-	{
-		control_byte =	 0x05;
-	}
-	//Enable Alarm 2 interrupt
-	else
-	{
-		control_byte |=	 0x02;
-	}
-
-	Write_RTC(control_reg, control_byte);
-}
-
-void Clear_Alarm_IT(uint8_t alarm)
-{
-	Read_RTC(&status_reg, &status_byte);
-	Read_RTC(&control_reg, &control_byte);
-
-	//Clear Alarm 1 interrupt
-	if(alarm == 1)
-	{
-		status_byte &=	 0xFE;
-		control_byte &=	 0xFE;
-	}
-	//Clear Alarm 2 interrupt
-	else
-	{
-		status_byte &=	 0xFD;
-		control_byte &=	 0xFD;
-	}
-
-	Write_RTC(control_reg, control_byte);
-	Write_RTC(status_reg, status_byte);
-	b_is_alarm_triggered = false;
-	HAL_Delay(500);
-}
-
-void Display_Time(void)
-{
-	Read_RTC(&Time_reg[0], &Time_settings[0]);
-	Read_RTC(&Time_reg[1], &Time_settings[1]);
-	Read_RTC(&Time_reg[2], &Time_settings[2]);
-	Read_RTC(&Time_reg[3], &Time_settings[3]);
-
-	if(last_second != Time_settings[0] || last_minute != Time_settings[1] || last_hour != Time_settings[2])
-	{
-		sprintf(txData, "%x:%x:%x\n",Time_settings[2], Time_settings[1], Time_settings[0]);
-		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 10);
-	}
-	last_second = Time_settings[0];
-	last_minute = Time_settings[1];
-	last_hour	= Time_settings[2];
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(GPIO_Pin);
-  /* NOTE: This function Should not be modified, when the callback is needed,
-           the HAL_GPIO_EXTI_Callback could be implemented in the user file
-   */
-  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_1) == GPIO_PIN_RESET)
-  {
-	  b_is_alarm_triggered = true;
-  }
-  if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
-  {
-	  b_button_pressed = true;
-  }
-}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -545,12 +395,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* NOTE: This function should not be modified, when the callback is needed,
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 
   HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
 
   b_seconds_entered = true;
 }
+
 /* USER CODE END 4 */
 
 /**

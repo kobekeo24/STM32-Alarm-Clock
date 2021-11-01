@@ -1,0 +1,15 @@
+RTC_interface.c:31:6:RTC_INIT_TIME	4	static
+RTC_interface.c:42:6:RTC_INIT_ALARMS	4	static
+RTC_interface.c:54:6:RTC_Write	24	static
+RTC_interface.c:63:6:RTC_Read	24	static
+RTC_interface.c:72:6:RTC_Enable_Alarm_IT	16	static
+RTC_interface.c:91:6:RTC_Clear_Alarm_IT	16	static
+RTC_interface.c:120:6:RTC_Display_Time	16	static
+RTC_interface.c:137:6:RTC_Set_Seconds	16	static
+RTC_interface.c:143:6:RTC_Set_Minutes	16	static
+RTC_interface.c:149:6:RTC_Set_Hours	16	static
+RTC_interface.c:155:6:RTC_Set_Time	16	static
+RTC_interface.c:166:6:RTC_Day_Date	16	static
+RTC_interface.c:175:6:RTC_Set_Alarm	24	static
+RTC_interface.c:204:6:RTC_Alarm_triggered	16	static
+RTC_interface.c:216:6:HAL_GPIO_EXTI_Callback	16	static
