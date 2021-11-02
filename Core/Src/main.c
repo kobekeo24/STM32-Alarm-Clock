@@ -104,7 +104,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  *Ask_seconds = "Enter seconds: \n";
   *txData = "Hello \n";
 
   HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxData, 1);
@@ -140,15 +139,21 @@ int main(void)
 
 	if(b_button_pressed)
 	{
-		HAL_UART_Transmit(&huart2,(uint8_t*) Ask_seconds,strlen(Ask_seconds), 50);
-		HAL_Delay(1000);
+		HAL_Delay(500);
 		b_button_pressed = false;
-		while(!b_seconds_entered);
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-		HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
-		RTC_Set_Seconds(rxData[0]);
-		HAL_Delay(100);
-		b_seconds_entered = false;
+
+		sprintf(txData,"Would you like to set alarm (1 = Yes/0 = No)?");
+		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
+		while(!b_message_received);
+		b_message_received = false;
+		if(rxData[0] == '0')
+		{
+			RTC_User_Set_Time(false);
+		}
+		else
+		{
+			RTC_User_Set_Time(true);
+		}
 	}
 	else
 	{
@@ -388,18 +393,7 @@ static void MX_GPIO_Init(void)
 
 
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(huart);
-  /* NOTE: This function should not be modified, when the callback is needed,
-           the HAL_UART_RxCpltCallback could be implemented in the user file
-   */
 
-  HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
-
-  b_seconds_entered = true;
-}
 
 /* USER CODE END 4 */
 

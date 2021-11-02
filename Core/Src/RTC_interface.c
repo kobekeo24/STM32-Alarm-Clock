@@ -24,6 +24,9 @@ static uint8_t control_data, status_data;
 static uint8_t control_reg = CONTROL_REG;
 static uint8_t status_reg = STATUS_REG;
 
+char Ask_seconds[50] = "Enter seconds: \n";
+char Ask_minutes[50] = "Enter minutes: \n";
+char Ask_hours[50]   = "Enter hours: \n";
 
 /* variables -----------------------------------------------------------------*/
 
@@ -213,6 +216,44 @@ bool RTC_Alarm_triggered(uint8_t alarm)
 	}
 }
 
+void RTC_User_Set_Time(bool b_set_alarm)
+{
+	static uint8_t user_seconds;
+	static uint8_t user_minutes;
+	static uint8_t user_hours;
+
+	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_seconds,strlen(Ask_seconds), 50);
+	HAL_Delay(200);
+	while(!b_message_received);
+	user_seconds = rxData;
+
+	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_minutes,strlen(Ask_minutes), 50);
+	b_message_received = false;
+	HAL_Delay(200);
+	while(!b_message_received);
+	user_minutes = rxData;
+
+	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_minutes,strlen(Ask_minutes), 50);
+	b_message_received = false;
+	HAL_Delay(200);
+	while(!b_message_received);
+	user_hours = rxData;
+
+	b_message_received = false;
+	if(b_set_alarm)
+	{
+		RTC_Set_Alarm(0x01, user_hours, user_minutes, user_seconds);
+
+		sprintf(txData,"Alarm Set: %d:%d:d",user_hours,user_minutes,user_seconds);
+		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
+	}
+
+	else
+	{
+		RTC_Set_Time(user_hours, user_minutes, user_seconds);
+	}
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* Prevent unused argument(s) compilation warning */
@@ -235,4 +276,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
 	  b_button_pressed = true;
   }
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_UART_RxCpltCallback could be implemented in the user file
+   */
+
+  HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+
+  b_message_received = true;
 }

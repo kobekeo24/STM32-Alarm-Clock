@@ -84,13 +84,12 @@ typedef struct RTC_interface
 } RTC_struct;
 /* Time Structure -------------------------------------------------------------*/
 
-char Ask_seconds[50];
 char txData[50];
 char rxData[50];
 
 bool b_button_pressed;
 
-bool b_seconds_entered, b_minutes_entered, b_hours_entered;
+bool b_message_received;
 
 UART_HandleTypeDef huart2;
 
@@ -123,4 +122,6 @@ void RTC_Day_Date(uint8_t day, uint8_t date);
 void RTC_Set_Alarm(uint8_t alarm, uint8_t hours, uint8_t minutes, uint8_t seconds);
 
 bool RTC_Alarm_triggered(uint8_t alarm);
+
+void RTC_User_Set_Time(bool b_set_alarm);
 #endif /* INC_RTC_INTERFACE_H_ */
