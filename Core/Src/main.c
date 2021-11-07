@@ -114,7 +114,6 @@ int main(void)
 
   //Time settings
   RTC_INIT_TIME();
-  RTC_INIT_ALARMS();
 
   //Set time
   RTC_Set_Time(0x65, 0x00, 0x00);
@@ -146,13 +145,13 @@ int main(void)
 		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 		while(!b_message_received);
 		b_message_received = false;
-		if(rxData[0] == '0')
+		if(strcmp(rxData,"0") != '0')
 		{
-			RTC_User_Set_Time(false);
+			RTC_User_Set_Time(true);
 		}
 		else
 		{
-			RTC_User_Set_Time(true);
+			RTC_User_Set_Time(false);
 		}
 	}
 	else

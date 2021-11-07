@@ -59,7 +59,7 @@
 /* Definitions ---------------------------------------------------------------*/
 
 /* Time Structure -------------------------------------------------------------*/
-typedef struct RTC_interface
+typedef struct RTC_interface_struct
 {
 	uint8_t seconds_reg;
 	uint8_t minutes_reg;
@@ -68,22 +68,113 @@ typedef struct RTC_interface
 	uint8_t date_reg;
 	uint8_t month_reg;
 	uint8_t year_reg;
-	uint8_t day_date_reg;
+	uint8_t A1s_reg;
+	uint8_t A1m_reg;
+	uint8_t A1h_reg;
+	uint8_t A1dd_reg;
+	uint8_t A2m_reg;
+	uint8_t A2h_reg;
+	uint8_t A2dd_reg;
+	uint8_t control_reg;
+	uint8_t status_reg;
 
-	uint8_t seconds;
-	uint8_t minutes;
-	uint8_t hours;
-	uint8_t day;
-	uint8_t date;
-	uint8_t month;
-	uint8_t year;
-	uint8_t day_date;
+	bool b_alarm1_triggered;
+	bool b_alarm2_triggered;
 
-	bool b_alarmed_triggered;
-	bool b_alarm_set;
-} RTC_struct;
+	bool b_alarm1_set;
+	bool b_alarm2_set;
+} RTC_interface;
+
+typedef struct RTC_memory_struct
+{
+	uint8_t seconds_1s: 		4;
+	uint8_t seconds_10s: 		3;
+	uint8_t seconds_padding: 	1;
+
+	uint8_t minutes_1s:			4;
+	uint8_t minutes_10s: 		3;
+	uint8_t minutes_padding: 	1;
+
+	uint8_t hours_1s: 			4;
+	uint8_t hours_10s: 			1;
+	uint8_t hours_20s_AMPM: 	1;
+	uint8_t hours_12_24: 		1;
+	uint8_t hours_padding: 		1;
+
+	uint8_t day: 				3;
+	uint8_t days_padding: 		5;
+
+	uint8_t date_1s: 			4;
+	uint8_t date_10s: 			2;
+	uint8_t date_padding: 		2;
+
+	uint8_t month_1s: 			4;
+	uint8_t month_10: 			1;
+	uint8_t month_padding: 		2;
+	uint8_t century: 			1;
+
+	uint8_t year_1s: 			4;
+	uint8_t years_10s: 			4;
+
+	uint8_t A1_seconds_1s: 		4;
+	uint8_t A1_seconds_10s: 	3;
+	uint8_t A1M1: 				1;
+
+	uint8_t A1_minutes_1s: 		4;
+	uint8_t A1_minutes_10s: 	3;
+	uint8_t A1M2: 				1;
+
+	uint8_t A1_hours_1s: 		4;
+	uint8_t A1_hours_10s: 		1;
+	uint8_t A1_hours_20s_AMPM: 	1;
+	uint8_t A1_hours_12_24: 	1;
+	uint8_t A1M3: 				1;
+
+	uint8_t A1_day_date: 		4;
+	uint8_t A1_date_10s: 		2;
+	uint8_t A1_day_date_sel: 	1;
+	uint8_t A1M4: 				1;
+
+	uint8_t A2_minutes_1s: 		4;
+	uint8_t A2_minutes_10s: 	3;
+	uint8_t A2M2: 				1;
+
+	uint8_t A2_hours_1s:	 	4;
+	uint8_t A2_hours_10s: 		1;
+	uint8_t A2_hours_20s_AMPM: 	1;
+	uint8_t A2_hours_12_24: 	1;
+	uint8_t A2M3: 				1;
+
+	uint8_t A2_day_date: 		4;
+	uint8_t A2_date_10s: 		2;
+	uint8_t A2_day_date_sel: 	1;
+	uint8_t A2M4: 				1;
+
+	uint8_t control_A1IE: 		1;
+	uint8_t control_A2IE: 		1;
+	uint8_t control_INTCN: 		1;
+	uint8_t control_NA: 		2;
+	uint8_t control_CONV: 		1;
+	uint8_t control_BBSQW: 		1;
+	uint8_t control_EOSC: 		1;
+
+	uint8_t status_A1F: 		1;
+	uint8_t status_A2F: 		1;
+	uint8_t status_BSY: 		1;
+	uint8_t status_EN32KHZ: 	1;
+	uint8_t status_padding: 	3;
+	uint8_t status_OSF: 		1;
+} RTC_memory;
+
+typedef union RTC_mem_data_u
+{
+	RTC_memory mem;
+	uint8_t byte;
+}RTC_mem_union;
 /* Time Structure -------------------------------------------------------------*/
 
+/* Decimal to Hex LUT ---------------------------------------------------------*/
+/* Decimal to Hex LUT ---------------------------------------------------------*/
 char txData[50];
 char rxData[50];
 
@@ -96,8 +187,6 @@ UART_HandleTypeDef huart2;
 I2C_HandleTypeDef hi2c1;
 
 void RTC_INIT_TIME(void);
-
-void RTC_INIT_ALARMS(void);
 
 void RTC_Write(uint8_t reg, uint8_t data);
 
@@ -122,6 +211,8 @@ void RTC_Day_Date(uint8_t day, uint8_t date);
 void RTC_Set_Alarm(uint8_t alarm, uint8_t hours, uint8_t minutes, uint8_t seconds);
 
 bool RTC_Alarm_triggered(uint8_t alarm);
+
+bool RTC_is_Alarm_triggered(void);
 
 void RTC_User_Set_Time(bool b_set_alarm);
 #endif /* INC_RTC_INTERFACE_H_ */
