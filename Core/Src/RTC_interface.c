@@ -273,19 +273,19 @@ void RTC_User_Set_Time(bool b_set_alarm)
 	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_seconds,strlen(Ask_seconds), 50);
 	HAL_Delay(200);
 	while(!b_message_received);
-	user_seconds = HEX_LUT[ rxData[0] ];
+	user_seconds = HEX_LUT[ *rxData ];
 
 	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_minutes,strlen(Ask_minutes), 50);
 	b_message_received = false;
 	HAL_Delay(200);
 	while(!b_message_received);
-	user_minutes = HEX_LUT[ rxData[0] ];
+	user_minutes = HEX_LUT[ *rxData ];
 
-	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_minutes,strlen(Ask_minutes), 50);
+	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_minutes,strlen(Ask_hours), 50);
 	b_message_received = false;
 	HAL_Delay(200);
 	while(!b_message_received);
-	user_hours = HEX_LUT[ rxData[0] ];
+	user_hours = HEX_LUT[ *rxData ];
 
 
 	b_message_received = false;

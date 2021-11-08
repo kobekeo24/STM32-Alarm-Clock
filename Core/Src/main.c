@@ -147,12 +147,16 @@ int main(void)
 		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 		while(!b_message_received);
 		b_message_received = false;
-		if(strcmp(rxData,"0") != '0')
+		if(strcmp(rxData,"0") != 0)
 		{
+			sprintf(txData,"Setting Alarm\n");
+			HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 			RTC_User_Set_Time(true);
 		}
 		else
 		{
+			sprintf(txData,"Setting Time\n");
+			HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 			RTC_User_Set_Time(false);
 		}
 	}

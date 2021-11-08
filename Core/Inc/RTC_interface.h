@@ -173,8 +173,6 @@ typedef union RTC_mem_data_u
 }RTC_mem_union;
 /* Time Structure -------------------------------------------------------------*/
 
-/* Decimal to Hex LUT ---------------------------------------------------------*/
-/* Decimal to Hex LUT ---------------------------------------------------------*/
 char txData[50];
 char rxData[50];
 
