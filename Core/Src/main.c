@@ -115,6 +115,8 @@ int main(void)
   //Time settings
   RTC_INIT_TIME();
 
+  RTC_Clear_Alarm_IT(alarm[0]);
+
   //Set time
   RTC_Set_Time(0x65, 0x00, 0x00);
   RTC_Day_Date(0x01, 0x20);

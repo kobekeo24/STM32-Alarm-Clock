@@ -57,6 +57,13 @@ void RTC_INIT_TIME(void)
 	RTC_map.A2dd_reg	= ALARM2_DAY_DATE_REG;
 	RTC_map.control_reg	= CONTROL_REG;
 	RTC_map.status_reg	= STATUS_REG;
+
+/*
+	for(uint8_t i = 0; i < STATUS_REG + 1; i++)
+	{
+		RTC_Read(i, (&RTC_mem.byte) + i);
+	}
+*/
 }
 
 void RTC_Write(uint8_t reg, uint8_t data)
@@ -124,7 +131,7 @@ void RTC_Clear_Alarm_IT(uint8_t alarm)
 
 	RTC_Write(RTC_map.control_reg, (&RTC_mem.byte)[RTC_map.control_reg]);
 	RTC_Write(RTC_map.status_reg, (&RTC_mem.byte)[RTC_map.status_reg]);
-	HAL_Delay(500);
+	HAL_Delay(30);
 }
 
 void RTC_Display_Time(void)
@@ -196,10 +203,13 @@ void RTC_Set_Alarm(uint8_t alarm, uint8_t hours, uint8_t minutes, uint8_t second
 		(&RTC_mem.byte)[RTC_map.A1m_reg] = minutes;
 		(&RTC_mem.byte)[RTC_map.A1h_reg]   = hours;
 		RTC_mem.mem.A1_day_date_sel = 0x01;
+		RTC_mem.mem.A1_day_date =  RTC_mem.mem.day;
+
 
 		RTC_Write(RTC_map.A1s_reg, seconds);
 		RTC_Write(RTC_map.A1m_reg, minutes);
 		RTC_Write(RTC_map.A1h_reg, hours);
+		RTC_Read(&RTC_map.A1dd_reg, (&RTC_mem.byte)[RTC_map.A1dd_reg]);
 		RTC_Write(RTC_map.A1dd_reg, (&RTC_mem.byte)[RTC_map.A1dd_reg]);
 	}
 
@@ -211,7 +221,8 @@ void RTC_Set_Alarm(uint8_t alarm, uint8_t hours, uint8_t minutes, uint8_t second
 
 		RTC_Write(RTC_map.A2m_reg, minutes);
 		RTC_Write(RTC_map.A2h_reg, hours);
-		RTC_Write(RTC_map.A2dd_reg, (&RTC_mem.byte)[RTC_map.A2dd_reg]);
+		RTC_Read(&RTC_map.A2dd_reg, (&RTC_mem.byte)+ RTC_map.A2dd_reg);
+		RTC_Write(RTC_map.A2dd_reg, (&RTC_mem.byte) + RTC_map.A2dd_reg);
 	}
 	RTC_Clear_Alarm_IT(alarm);
 	RTC_Enable_Alarm_IT(alarm);
@@ -243,11 +254,11 @@ bool RTC_is_Alarm_triggered(void)
 	{
 		if(RTC_mem.mem.status_A1F == 1)
 		{
-			RTC_map.b_alarm1_triggered;
+			RTC_map.b_alarm1_triggered = true;
 		}
 		else if(RTC_mem.mem.status_A2F == 1)
 		{
-			RTC_map.b_alarm2_triggered;
+			RTC_map.b_alarm2_triggered = true;
 		}
 	}
 	return b_alarm_triggered;
