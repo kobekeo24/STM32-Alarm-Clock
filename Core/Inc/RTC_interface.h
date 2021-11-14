@@ -175,6 +175,7 @@ typedef union RTC_mem_data_u
 
 char txData[50];
 char rxData[50];
+char g_user_buffer[50];
 
 bool b_button_pressed;
 

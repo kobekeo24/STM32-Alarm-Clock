@@ -20,12 +20,15 @@
 static uint8_t last_second, last_minute, last_hour;
 static bool b_alarm_triggered;
 
+static uint8_t g_user_buffer_index;
+
 RTC_interface RTC_map;
 RTC_mem_union RTC_mem;
 
 char Ask_seconds[50] = "Enter seconds: \n";
 char Ask_minutes[50] = "Enter minutes: \n";
 char Ask_hours[50]   = "Enter hours: \n";
+
 
 uint8_t HEX_LUT[] =
 {
@@ -72,7 +75,7 @@ void RTC_Write(uint8_t reg, uint8_t data)
 	  static uint8_t payload[2];
 	  payload[0] = reg;
 	  payload[1] = data;
-	  HAL_I2C_Master_Transmit(&hi2c1,RTC_ADDRESS,payload,2,10);
+	  HAL_I2C_Master_Transmit(&hi2c1,RTC_ADDRESS,payload,2,100);
 	  HAL_Delay(30);
 }
 
@@ -145,12 +148,12 @@ void RTC_Display_Time(void)
 
 	seconds = (&RTC_mem.byte)[RTC_map.seconds_reg];
 	minutes = (&RTC_mem.byte)[RTC_map.minutes_reg];
-	hours   = RTC_mem.mem.hours_10s + RTC_mem.mem.hours_1s;
+	//hours   = RTC_mem.mem.hours_10s << 4 + RTC_mem.mem.hours_1s;
 	day     = (&RTC_mem.byte)[RTC_map.day_reg];
 
 	if(last_second != seconds || last_minute != minutes || last_hour != hours)
 	{
-		sprintf(txData, "%x:%x:%x\n",hours, minutes, seconds);
+		sprintf(txData, "%x%x:%x:%x\n",RTC_mem.mem.hours_10s,RTC_mem.mem.hours_1s, minutes, seconds);
 		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 10);
 	}
 	last_second = seconds;
@@ -271,22 +274,31 @@ void RTC_User_Set_Time(bool b_set_alarm)
 	static uint8_t user_minutes;
 	static uint8_t user_hours;
 
+	g_user_buffer_index = 0;
+	memset(g_user_buffer,0,sizeof(g_user_buffer));
 	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_seconds,strlen(Ask_seconds), 50);
 	HAL_Delay(200);
 	while(!b_message_received);
-	user_seconds = HEX_LUT[ atoi(rxData) ];
+	HAL_Delay(50);
+	user_seconds = HEX_LUT[ atoi(g_user_buffer) ];
 
+	g_user_buffer_index = 0;
+	memset(g_user_buffer,0,sizeof(g_user_buffer));
 	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_minutes,strlen(Ask_minutes), 50);
 	b_message_received = false;
 	HAL_Delay(200);
 	while(!b_message_received);
-	user_minutes = HEX_LUT[ atoi(rxData) ];
+	HAL_Delay(50);
+	user_minutes = HEX_LUT[ atoi(g_user_buffer) ];
 
+	g_user_buffer_index = 0;
+	memset(g_user_buffer,0,sizeof(g_user_buffer));
 	HAL_UART_Transmit(&huart2,(uint8_t*) Ask_hours,strlen(Ask_hours), 50);
 	b_message_received = false;
 	HAL_Delay(200);
 	while(!b_message_received);
-	user_hours = HEX_LUT[ atoi(rxData) ];
+	HAL_Delay(100);
+	user_hours = HEX_LUT[ atoi(g_user_buffer) ];
 
 
 	b_message_received = false;
@@ -305,9 +317,10 @@ void RTC_User_Set_Time(bool b_set_alarm)
 	{
 		RTC_mem.mem.hours_1s = user_hours;
 		RTC_mem.mem.hours_10s = user_hours >> 4;
-
 		RTC_Set_Time( (&RTC_mem.byte)[RTC_map.hours_reg], user_minutes, user_seconds);
 	}
+	g_user_buffer_index = 0;
+	memset(g_user_buffer,0,sizeof(g_user_buffer));
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -335,7 +348,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
 
-  HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+	  g_user_buffer[g_user_buffer_index] = rxData[0];
 
-  b_message_received = true;
+	  g_user_buffer_index++;
+
+	  b_message_received = true;
+
 }

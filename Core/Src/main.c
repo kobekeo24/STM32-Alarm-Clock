@@ -118,11 +118,13 @@ int main(void)
   RTC_Clear_Alarm_IT(alarm[0]);
 
   //Set time
-  RTC_Set_Time(0x65, 0x00, 0x00);
+  RTC_Set_Time(0x71, 0x59, 0x50);
   RTC_Day_Date(0x01, 0x20);
 
   //Alarm settings
   RTC_Set_Alarm(alarm[0], 0x65, 0x00, 0x10);
+
+  memset(g_user_buffer,0,sizeof(g_user_buffer));
 
   /* USER CODE END 2 */
 
@@ -143,19 +145,28 @@ int main(void)
 		HAL_Delay(500);
 		b_button_pressed = false;
 
-		sprintf(txData,"Would you like to set alarm (1 = Yes/0 = No)?");
+		sprintf(txData,"Would you like to set alarm (2 = Yes/1 = No)?");
 		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 		while(!b_message_received);
+		HAL_Delay(50);
+		//sprintf(rxData,"rxData[0] = %d",g_user_buffer[0]);
+		//HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+
+		//sprintf(rxData,"rxData[1] = %d",g_user_buffer[1]);
+		//HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+
+		//sprintf(rxData,"rxData[2] = %d",g_user_buffer[2]);
+		//HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
 		b_message_received = false;
-		if(strcmp(rxData,"0") != 0)
+		if(strcmp(g_user_buffer,"no") != 0)
 		{
-			sprintf(txData,"Setting Alarm\n");
+			sprintf(txData,"\nSetting Alarm\n");
 			HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 			RTC_User_Set_Time(true);
 		}
 		else
 		{
-			sprintf(txData,"Setting Time\n");
+			sprintf(txData,"\nSetting Time\n");
 			HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 			RTC_User_Set_Time(false);
 		}
