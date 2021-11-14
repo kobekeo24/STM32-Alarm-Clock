@@ -10,8 +10,8 @@ RTC_interface.c:176:6:RTC_Set_Hours	16	static
 RTC_interface.c:182:6:RTC_Set_Time	16	static
 RTC_interface.c:193:6:RTC_Day_Date	16	static
 RTC_interface.c:202:6:RTC_Set_Alarm	24	static
-RTC_interface.c:235:6:RTC_Alarm_triggered	16	static
-RTC_interface.c:254:6:RTC_is_Alarm_triggered	8	static
-RTC_interface.c:271:6:RTC_User_Set_Time	24	static
-RTC_interface.c:326:6:HAL_GPIO_EXTI_Callback	16	static
-RTC_interface.c:343:6:HAL_UART_RxCpltCallback	16	static
+RTC_interface.c:236:6:RTC_Alarm_triggered	16	static
+RTC_interface.c:255:6:RTC_is_Alarm_triggered	8	static
+RTC_interface.c:272:6:RTC_User_Set_Time	24	static
+RTC_interface.c:327:6:HAL_GPIO_EXTI_Callback	16	static
+RTC_interface.c:344:6:HAL_UART_RxCpltCallback	16	static

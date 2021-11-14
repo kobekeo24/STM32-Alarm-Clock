@@ -201,6 +201,7 @@ void RTC_Day_Date(uint8_t day, uint8_t date)
 
 void RTC_Set_Alarm(uint8_t alarm, uint8_t hours, uint8_t minutes, uint8_t seconds)
 {
+	RTC_Clear_Alarm_IT(alarm);
 	if(alarm == 0x01)
 	{
 		(&RTC_mem.byte)[RTC_map.A1s_reg] = seconds;
@@ -309,7 +310,7 @@ void RTC_User_Set_Time(bool b_set_alarm)
 
 		RTC_Set_Alarm(0x01, (&RTC_mem.byte)[RTC_map.A1h_reg], user_minutes, user_seconds);
 
-		sprintf(txData,"Alarm Set: %d:%d:d",user_hours,user_minutes,user_seconds);
+		sprintf(txData,"Alarm Set: %x%x:%x:x",RTC_mem.mem.A1_hours_10s,RTC_mem.mem.A1_hours_1s,user_minutes,user_seconds);
 		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 	}
 

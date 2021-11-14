@@ -114,11 +114,8 @@ int main(void)
 
   //Time settings
   RTC_INIT_TIME();
-
-  RTC_Clear_Alarm_IT(alarm[0]);
-
   //Set time
-  RTC_Set_Time(0x71, 0x59, 0x50);
+  RTC_Set_Time(0x65, 0x00, 0x00);
   RTC_Day_Date(0x01, 0x20);
 
   //Alarm settings
@@ -148,15 +145,7 @@ int main(void)
 		sprintf(txData,"Would you like to set alarm (2 = Yes/1 = No)?");
 		HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 		while(!b_message_received);
-		HAL_Delay(50);
-		//sprintf(rxData,"rxData[0] = %d",g_user_buffer[0]);
-		//HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
-
-		//sprintf(rxData,"rxData[1] = %d",g_user_buffer[1]);
-		//HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
-
-		//sprintf(rxData,"rxData[2] = %d",g_user_buffer[2]);
-		//HAL_UART_Transmit(&huart2,(uint8_t*) rxData,strlen(rxData), 50);
+		HAL_Delay(100);
 		b_message_received = false;
 		if(strcmp(g_user_buffer,"no") != 0)
 		{
@@ -183,6 +172,7 @@ int main(void)
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 		RTC_Clear_Alarm_IT(alarm[0]);
 		HAL_Delay(1000);
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 	}
 
   }
