@@ -1,3 +1,4 @@
-OLED.c:10:6:OLED_BEGIN	16	static
-OLED.c:43:6:OLED_Write_Command	24	static
-OLED.c:49:6:OLED_Draw	24	static
+OLED.c:12:6:OLED_BEGIN	24	static
+OLED.c:69:6:OLED_Write_Command	24	static
+OLED.c:74:6:OLED_Draw	24	static
+OLED.c:83:6:OLED_Draw_Colon	24	static

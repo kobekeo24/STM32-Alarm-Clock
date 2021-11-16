@@ -112,7 +112,8 @@ int main(void)
   }
 
   OLED_BEGIN();
-  OLED_Draw(0x00);
+  OLED_Draw_Colon();
+  //OLED_Draw(0x00);
 /*
   *txData = "Hello \n";
 
