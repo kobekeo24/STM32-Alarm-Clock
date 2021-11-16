@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <string.h>
+#include "OLED.h"
 #include "RTC_interface.h"
 /* USER CODE END Includes */
 
@@ -104,6 +105,15 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  //Check if I2C device is ready
+  if(HAL_I2C_IsDeviceReady(&hi2c1, OLED_ADDRESS_32H, 1, 10) == HAL_OK)
+  {
+	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+  }
+
+  OLED_BEGIN();
+  OLED_Draw(0x00);
+/*
   *txData = "Hello \n";
 
   HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxData, 1);
@@ -122,7 +132,7 @@ int main(void)
   RTC_Set_Alarm(alarm[0], 0x65, 0x00, 0x10);
 
   memset(g_user_buffer,0,sizeof(g_user_buffer));
-
+*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -132,6 +142,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+/*
 	//Read time
 	  RTC_Display_Time();
 
@@ -174,8 +185,9 @@ int main(void)
 		HAL_Delay(1000);
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 	}
-
+*/
   }
+
   /* USER CODE END 3 */
 }
 
