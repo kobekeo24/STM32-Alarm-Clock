@@ -1,4 +1,4 @@
-"Core/Src/OLED.o"
+"Core/Src/1602_I2C_LCD.o"
 "Core/Src/RTC_interface.o"
 "Core/Src/main.o"
 "Core/Src/stm32f4xx_hal_msp.o"

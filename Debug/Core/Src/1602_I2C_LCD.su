@@ -1,0 +1,6 @@
+1602_I2C_LCD.c:13:6:lcd_send_cmd	32	static
+1602_I2C_LCD.c:27:6:lcd_send_data	32	static
+1602_I2C_LCD.c:41:6:lcd_clear	8	static
+1602_I2C_LCD.c:47:6:lcd_put_cur	16	static
+1602_I2C_LCD.c:63:6:lcd_init	8	static
+1602_I2C_LCD.c:90:6:lcd_send_string	16	static

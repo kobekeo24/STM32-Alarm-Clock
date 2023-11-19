@@ -1,4 +1,4 @@
-Core/Src/OLED.o: ../Core/Src/OLED.c \
+Core/Src/1602_I2C_LCD.o: ../Core/Src/1602_I2C_LCD.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -27,7 +27,9 @@ Core/Src/OLED.o: ../Core/Src/OLED.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/OLED.h ../Core/Inc/RTC_interface.h
+ ../Core/Inc/1602_I2C_LCD.h ../Core/Inc/RTC_interface.h
+
+../Core/Inc/main.h:
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 
@@ -85,6 +87,6 @@ Core/Src/OLED.o: ../Core/Src/OLED.c \
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 
-../Core/Inc/OLED.h:
+../Core/Inc/1602_I2C_LCD.h:
 
 ../Core/Inc/RTC_interface.h:

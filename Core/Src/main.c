@@ -24,8 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <string.h>
-#include "OLED.h"
 #include "RTC_interface.h"
+#include "1602_I2C_LCD.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,15 +105,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  //Check if I2C device is ready
-  if(HAL_I2C_IsDeviceReady(&hi2c1, OLED_ADDRESS_32H, 1, 10) == HAL_OK)
-  {
-	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-  }
-
-//  OLED_BEGIN();
-//  OLED_Draw_Colon();
-  //OLED_Draw(0x00);
 
   *txData = "Hello \n";
 
@@ -121,7 +112,16 @@ int main(void)
 
   HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
 
+  //Init LCD
+  lcd_init();
+  lcd_clear();
 
+  lcd_put_cur(0,0);
+  lcd_send_string("Hello World!");
+
+//  lcd_put_cur(1,0);
+//  lcd_send_string("From STM32!");
+  HAL_Delay(500);
 
   //Time settings
   RTC_INIT_TIME();
