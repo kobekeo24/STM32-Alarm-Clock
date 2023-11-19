@@ -111,10 +111,10 @@ int main(void)
 	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
   }
 
-  OLED_BEGIN();
-  OLED_Draw_Colon();
+//  OLED_BEGIN();
+//  OLED_Draw_Colon();
   //OLED_Draw(0x00);
-/*
+
   *txData = "Hello \n";
 
   HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxData, 1);
@@ -133,7 +133,7 @@ int main(void)
   RTC_Set_Alarm(alarm[0], 0x65, 0x00, 0x10);
 
   memset(g_user_buffer,0,sizeof(g_user_buffer));
-*/
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,7 +143,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-/*
+
 	//Read time
 	  RTC_Display_Time();
 
@@ -159,7 +159,7 @@ int main(void)
 		while(!b_message_received);
 		HAL_Delay(100);
 		b_message_received = false;
-		if(strcmp(g_user_buffer,"no") != 0)
+		if(strcmp(g_user_buffer,"Yes\n") == 0)
 		{
 			sprintf(txData,"\nSetting Alarm\n");
 			HAL_UART_Transmit(&huart2,(uint8_t*) txData,strlen(txData), 50);
@@ -186,7 +186,7 @@ int main(void)
 		HAL_Delay(1000);
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 	}
-*/
+
   }
 
   /* USER CODE END 3 */
